@@ -38,7 +38,7 @@ class MOGLabsDDSFreqConversion(UnitConversion):
         return MHz*1.0e6
 
     def MHz_from_base(self, Hz):
-        return MHz/1.0e6
+        return Hz/1.0e6
 
     def kHz_to_base(self, kHz):
         return kHz*1.0e3
@@ -54,7 +54,8 @@ class MOGLabsDDSAmpConversion(UnitConversion):
 
     def __init__(self, calibration_parameters={'calibration_file': 'C:\\labscript_suite\\labscript_utils\\unitconversions\\MOGLabsDDS.csv'}):
         self.parameters = calibration_parameters
-        df = pd.read_csv(self.parameters['calibration_file'])
+        df = pd.read_csv('C:\\labscript_suite\\labscript_utils\\unitconversions\\MOGLabsDDS.csv')
+        # df = pd.read_csv(self.parameters['calibration_file'])
         df.i = np.log2(df.amp+1)
         self.df = df
         self.dBm_max = df.dBm.max()
@@ -119,11 +120,20 @@ if __name__ == '__main__':
     dBi = conv.to_dB(i)
     print(conv.from_dB(dBi) == i)
 
-    # Plot the first thousand discretised amplitudes in Vpp
+    # Plot the first hundred discretised amplitudes in Vpp
     import matplotlib.pyplot as plt
     x_list = np.arange(100)
     Vpp_list = np.array([conv.Vpp_from_base(x) for x in x_list])
     plt.plot(x_list, Vpp_list, ls='-', marker='o', drawstyle='steps-post')
     plt.xlabel('amplitude (integer)')
     plt.ylabel('amplitude (Vpp)')
+    plt.show()
+
+    # Plot the first hundred discretised amplitudes in dBm
+    import matplotlib.pyplot as plt
+    x_list = np.arange(100)
+    dBm_list = np.array([conv.dBm_from_base(x) for x in x_list])
+    plt.plot(x_list, Vpp_list, ls='-', marker='o', drawstyle='steps-post')
+    plt.xlabel('amplitude (integer)')
+    plt.ylabel('amplitude (dBm)')
     plt.show()
