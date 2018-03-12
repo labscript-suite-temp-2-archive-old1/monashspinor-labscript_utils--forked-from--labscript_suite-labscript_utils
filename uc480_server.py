@@ -47,8 +47,7 @@ class uc480CameraServer(CameraServer):
             if not 'EXPOSURES' in group:
                 print('No camera exposures in this shot.')
                 return
-            else:
-                self.exposures = group['EXPOSURES'].value
+            self.exposures = group['EXPOSURES'].value
             self.n_images = len(group['EXPOSURES'])
 
             # Read camera properties from the h5 file
@@ -115,21 +114,23 @@ class uc480CameraServer(CameraServer):
             with h5py.File(h5_filepath) as h5_file:
                 image_group = h5_file.require_group(
                     '/images/' + self.device_properties['orientation'])
+                image_group.attrs['camera'] = str(self.camera_name)
                 image_group.attrs.create(
                     'exposure_time', 1e-3*self.exposure_time, dtype='float32')
                 image_group.attrs.create('gain', self.gain, dtype='uint8')
                 for i, exposure in enumerate(self.exposures):
                     group = h5_file.require_group(
                         '{:}/{:}'.format(image_group.name, exposure['name']))
-                    dset = group.create_dataset(exposure['frametype'], data=np.array(self.imgs[i]),
+                    dset = group.create_dataset(exposure['frametype'], data=self.imgs[i],
                                                 dtype='uint{:d}'.format(self.bitdepth),
                                                 compression='gzip')
-                    # Specify this dataset should be viewed as an image
-                    dset.attrs['CLASS'] = np.string_('IMAGE')
-                    dset.attrs['IMAGE_VERSION'] = np.string_('1.2')
-                    dset.attrs['IMAGE_SUBCLASS'] = np.string_(
-                        'IMAGE_GRAYSCALE')
-                    dset.attrs['IMAGE_WHITE_IS_ZERO'] = np.uint8(0)
+                    if self.imageify:
+                        # Specify this dataset should be viewed as an image
+                        dset.attrs['CLASS'] = np.string_('IMAGE')
+                        dset.attrs['IMAGE_VERSION'] = np.string_('1.2')
+                        dset.attrs['IMAGE_SUBCLASS'] = np.string_(
+                            'IMAGE_GRAYSCALE')
+                        dset.attrs['IMAGE_WHITE_IS_ZERO'] = np.uint8(0)
         else:
             print('transition_to_static: No camera exposures in this shot.\n\n')
             return
