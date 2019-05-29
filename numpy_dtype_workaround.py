@@ -1,6 +1,6 @@
 #####################################################################
 #                                                                   #
-# horrible_fixed_length_strings_hack.py                             #
+# numpy_dtype_workaround.py                                         #
 #                                                                   #
 # Copyright 2013, Monash University                                 #
 #                                                                   #
@@ -10,15 +10,15 @@
 # for the full license.                                             #
 #                                                                   #
 #####################################################################
+from __future__ import division, unicode_literals, print_function, absolute_import
+from labscript_utils import PY2
 
-import h5py
-
-def horribly_hack_fixed_length_strings():
-    _guess_dtype = h5py._hl.base.guess_dtype
-
-    def guess_dtype(data):
-        if type(data) not in [bytes, unicode]:
-            return _guess_dtype(data)
-            
-    # I feel dirty:
-    h5py._hl.base.guess_dtype = guess_dtype
+def dtype_workaround(dtypes):
+    """Convert names specified in compound datatype tuples to the native
+    string type. This is a workaround for numpy issue #2407 until the fix
+    becomes available:
+    https://github.com/numpy/numpy/issues/2407
+    """
+    if PY2:
+        return [(bytes(name), dtype) for name, dtype in dtypes]
+    return dtypes
